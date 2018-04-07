@@ -377,10 +377,13 @@ UniValue getwork(const JSONRPCRequest& request)
         CBlock* pblock = mapNewBlock[pdata->hashMerkleRoot].first;
         pblock->nTime = pdata->nTime;
         pblock->nNonce = pdata->nNonce;
+		CMutableTransaction txCoinbase(*pblock->vtx[0]);
+		txCoinbase.vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
+		pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
+		pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
         //CMutableTransaction txCoinbase(*pblock->vtx[0]);
         //txCoinbase.vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
 		//pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
-        pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
         assert(pwalletMainx != NULL);
         return CheckWork(pblock, *pwalletMainx, *pMiningKey);
     }
